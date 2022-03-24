@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:numberpicker/numberpicker.dart';
 
 void main() {
-  runApp(const GamerGuess());
+  runApp(const Game());
 }
 
-class GamerGuess extends StatelessWidget {
-  const GamerGuess({Key? key}) : super(key: key);
+class Game extends StatelessWidget {
+  const Game({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -16,66 +16,32 @@ class GamerGuess extends StatelessWidget {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: const Text("Gamer"),
+            title: const Text("Game Guess"),
           ),
           body: Container(
             margin: const EdgeInsets.only(top: 80),
-            child: const Games(),
+            child: const GamerGuess(),
           )),
     );
   }
 }
 
-class Games extends StatefulWidget {
-  const Games({Key? key}) : super(key: key);
+class GamerGuess extends StatefulWidget {
+  const GamerGuess({Key? key}) : super(key: key);
   @override
-  GamesState createState() => GamesState();
+  State<GamerGuess> createState() => GamerGuessState();
 }
 
-class GamesState extends State<Games> {
+class GamerGuessState extends State<GamerGuess> {
   int _numberRandom = Random().nextInt(100) + 1;
   int _number = 1;
+  bool _numberRight = false;
   String info = "";
-  TextStyle _styleFindNumber = TextStyle();
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-          const Text(
-            "Escolha um número de 1 a 100",
-            style: TextStyle(fontSize: 20, color: Colors.deepPurple),
-          ),
-          NumberPicker(
-            minValue: 1,
-            maxValue: 100,
-            value: _number,
-            onChanged: (int value) => {onChange(value)},
-            axis: Axis.horizontal,
-            selectedTextStyle: _styleFindNumber,
-          ),
-          Text(info),
-          Container(
-            margin: const EdgeInsets.only(top: 30),
-            child: IconButton(
-                iconSize: 30,
-                onPressed: () {
-                  setState(() {
-                    _numberRandom = Random().nextInt(100) + 1;
-                    checkHits();
-                  });
-                },
-                icon: const Icon(
-                  Icons.restart_alt,
-                  size: 30,
-                )),
-          )
-        ]));
-  }
+  final TextStyle? styleLabel = const TextStyle(
+      fontSize: 20, color: Colors.blueAccent, fontWeight: FontWeight.w500);
 
-  void onChange(int value) {
+  void changeNumber(int value) {
     setState(() {
       _number = value;
     });
@@ -84,19 +50,96 @@ class GamesState extends State<Games> {
 
   void checkHits() {
     final String text;
-    TextStyle textStyle = const TextStyle();
+    bool numberRight = false;
     if (_number > _numberRandom) {
       text = "O número é menor";
     } else if (_number < _numberRandom) {
       text = "O número é maior";
     } else {
-      textStyle =
-          const TextStyle(color: Colors.green, fontWeight: FontWeight.bold);
       text = "Número correto!";
+      numberRight = true;
     }
     setState(() {
       info = text;
-      _styleFindNumber = textStyle;
+      _numberRight = numberRight;
     });
+  }
+
+  void resetNumberRandom() {
+    setState(() {
+      _numberRandom = Random().nextInt(100) + 1;
+      checkHits();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    //checkHits();
+    return Center(
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+          Text(_numberRandom.toString()),
+          Text("Escolha um número de 1 a 100", style: styleLabel),
+          NumberPickerInput(_number, changeNumber, _numberRight),
+          Text(info),
+          Container(
+              margin: const EdgeInsets.only(top: 30),
+              child: ButtonReset(resetNumberRandom))
+        ]));
+  }
+}
+
+// ignore: must_be_immutable
+class NumberPickerInput extends StatelessWidget {
+  int number;
+  ValueChanged<int> changeNumber;
+  // ignore: non_constant_identifier_names
+  bool number_right;
+
+  NumberPickerInput(this.number, this.changeNumber, this.number_right,
+      {Key? key})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return NumberPicker(
+        minValue: 1,
+        maxValue: 100,
+        value: number,
+        onChanged: changeNumber,
+        axis: Axis.horizontal,
+        selectedTextStyle: number_right
+            ? const TextStyle(color: Colors.green, fontSize: 30)
+            : const TextStyle());
+  }
+}
+
+// ignore: must_be_immutable
+class TextInfo extends StatelessWidget {
+  String message;
+
+  TextInfo(this.message, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(message);
+  }
+}
+
+// ignore: must_be_immutable
+class ButtonReset extends StatelessWidget {
+  VoidCallback resetNumber;
+  ButtonReset(this.resetNumber, {Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+        iconSize: 30,
+        onPressed: resetNumber,
+        icon: const Icon(
+          Icons.restart_alt,
+          size: 30,
+        ));
   }
 }
